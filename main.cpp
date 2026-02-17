@@ -212,9 +212,19 @@ bool confirm(string msg) {
     cin >> ch;
     return (ch == 'y' || ch == 'Y');
 }
-// Validation
+// Validation for 8 digits + 1 letter (e.g., 01240154D)
 bool validIndex(string i) { 
-    return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); 
+    if (i.length() != 9) return false; // 8 digits + 1 letter = 9 total
+    
+    // Check first 8 characters are digits
+    for (int pos = 0; pos < 8; pos++) {
+        if (!isdigit(i[pos])) return false;
+    }
+    
+    // Check last character is a letter
+    if (!isalpha(i[8])) return false;
+    
+    return true;
 }
 
 bool studentExists(string i) { 
@@ -225,7 +235,7 @@ bool studentExists(string i) {
 // Student Functions with better validation
 void registerStudent() {
     string n, i;
-    cout << "\nIndex (3 digits): "; cin >> i;
+    cout << "Invalid index! Must be 8 digits followed by a letter (e.g., 01240154D).\n";
     
     // Validate index format
     if (!validIndex(i)) { 
