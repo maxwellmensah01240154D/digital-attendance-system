@@ -239,6 +239,28 @@ void summary() {
         cout << "Late: " << l << " (" << (l*100/t) << "%)\n";
         cout << "Absent: " << a << " (" << (a*100/t) << "%)\n";
     }
+    
+    // NEW: Save to file
+    char save;
+    cout << "\nSave summary to file? (y/n): ";
+    cin >> save;
+    if (save == 'y' || save == 'Y') {
+        ofstream file("summary_report.txt");
+        file << "ATTENDANCE SUMMARY REPORT\n";
+        file << "=========================\n";
+        file << "Date: " << _DATE_ << "\n";
+        file << "Sessions: " << sessions.size() << "\n";
+        file << "Total Marks: " << t << "\n\n";
+        file << "Present: " << p;
+        if (t>0) file << " (" << (p*100/t) << "%)";
+        file << "\nLate: " << l;
+        if (t>0) file << " (" << (l*100/t) << "%)";
+        file << "\nAbsent: " << a;
+        if (t>0) file << " (" << (a*100/t) << "%)";
+        file << "\n";
+        file.close();
+        cout << "✅ Summary saved to summary_report.txt\n";
+    }
 }
 
 // MAIN FUNCTION
