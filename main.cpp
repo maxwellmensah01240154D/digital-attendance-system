@@ -55,17 +55,21 @@ public:
     }
     
     void display() {
-        cout << "\n=== SESSION ===" << endl;
-        cout << courseCode << " | " << date << " | " << time << " (" << duration << "h)" << endl;
-        cout << "Present: " << present.size() << " | Late: " << late.size() << " | Absent: " << absent.size() << endl;
+        cout << "\n=== SESSION ===\n";
+        cout << courseCode << " | " << date << " | " << time << " (" << duration << "h)\n";
+        cout << "Present: " << present.size() << " | Late: " << late.size() << " | Absent: " << absent.size() << "\n";
     }
     
     void report() {
-        cout << "\n=== ATTENDANCE REPORT ===" << endl;
-        cout << courseCode << " - " << date << endl;
-        cout << "PRESENT:"; for (string i : present) cout << " " << i; cout << endl;
-        cout << "LATE:"; for (string i : late) cout << " " << i; cout << endl;
-        cout << "ABSENT:"; for (string i : absent) cout << " " << i; cout << endl;
+        cout << "\n=== ATTENDANCE REPORT ===\n";
+        cout << courseCode << " - " << date << "\n";
+        cout << "PRESENT:";
+        for (string i : present) cout << " " << i;
+        cout << "\nLATE:";
+        for (string i : late) cout << " " << i;
+        cout << "\nABSENT:";
+        for (string i : absent) cout << " " << i;
+        cout << "\n";
     }
     
     void saveToFile() {
@@ -126,8 +130,14 @@ void saveSessions() {
 }
 
 // Validation
-bool validIndex(string i) { return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); }
-bool studentExists(string i) { for (Student s : students) if (s.index == i) return true; return false; }
+bool validIndex(string i) { 
+    return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); 
+}
+
+bool studentExists(string i) { 
+    for (Student s : students) if (s.index == i) return true; 
+    return false; 
+}
 
 // Student Functions
 void registerStudent() {
@@ -151,7 +161,9 @@ void viewStudents() {
 
 void searchStudent() {
     string i; cout << "Index: "; cin >> i;
-    for (Student s : students) if (s.index == i) { cout << "Found: "; s.display(); cout << "\n"; return; }
+    for (Student s : students) if (s.index == i) { 
+        cout << "Found: "; s.display(); cout << "\n"; return; 
+    }
     cout << "Not found\n";
 }
 
@@ -209,23 +221,46 @@ void markAttendance() {
     sessions[s].report();
 }
 
-// Reports
+// Summary Function
 void summary() {
     if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
     int p=0, l=0, a=0;
-    for (auto ses : sessions) { p+=ses.present.size(); l+=ses.late.size(); a+=ses.absent.size(); }
+    for (auto ses : sessions) { 
+        p += ses.present.size(); 
+        l += ses.late.size(); 
+        a += ses.absent.size(); 
+    }
     int t = p+l+a;
-    cout << "\n=== SUMMARY ===\nSessions: " << sessions.size() << "\nTotal marks: " << t << "\n";
-    if (t>0) cout << "Present: " << p << " (" << p*100/t << "%)\nLate: " << l << " (" << l*100/t << "%)\nAbsent: " << a << " (" << a*100/t << "%)\n";
+    cout << "\n=== SUMMARY ===\n";
+    cout << "Sessions: " << sessions.size() << "\n";
+    cout << "Total marks: " << t << "\n";
+    if (t>0) {
+        cout << "Present: " << p << " (" << (p*100/t) << "%)\n";
+        cout << "Late: " << l << " (" << (l*100/t) << "%)\n";
+        cout << "Absent: " << a << " (" << (a*100/t) << "%)\n";
+    }
 }
 
-// Main
+// MAIN FUNCTION
 int main() {
-    loadStudents(); loadSessions();
+    loadStudents(); 
+    loadSessions();
+    
     int ch;
     do {
-        cout << "\n=== WEEK 3 ATTENDANCE ===\n1.Register\n2.View Students\n3.Search\n4.Create Session\n5.View Sessions\n6.Mark Attendance\n7.Session Report\n8.Summary\n9.Exit\nChoice: ";
+        cout << "\n=== WEEK 3 ATTENDANCE ===\n";
+        cout << "1. Register Student\n";
+        cout << "2. View Students\n";
+        cout << "3. Search Student\n";
+        cout << "4. Create Session\n";
+        cout << "5. View Sessions\n";
+        cout << "6. Mark Attendance\n";
+        cout << "7. Session Report\n";
+        cout << "8. Overall Summary\n";
+        cout << "9. Exit\n";
+        cout << "Choice: ";
         cin >> ch;
+        
         if (ch==1) registerStudent();
         else if (ch==2) viewStudents();
         else if (ch==3) searchStudent();
@@ -234,11 +269,22 @@ int main() {
         else if (ch==6) markAttendance();
         else if (ch==7) {
             if (sessions.empty()) cout << "No sessions\n";
-            else { int s; cout << "Session (1-"<<sessions.size()<<"): "; cin >> s; sessions[s-1].report(); }
+            else { 
+                int s; 
+                cout << "Session (1-" << sessions.size() << "): "; 
+                cin >> s; 
+                sessions[s-1].report(); 
+            }
         }
         else if (ch==8) summary();
-        else if (ch==9) { saveStudents(); saveSessions(); cout << "Goodbye!\n"; }
-        else cout << "Invalid\n";
+        else if (ch==9) { 
+            saveStudents(); 
+            saveSessions(); 
+            cout << "Goodbye!\n"; 
+        }
+        else cout << "Invalid choice\n";
+        
     } while (ch != 9);
+    
     return 0;
 }
