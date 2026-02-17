@@ -214,11 +214,22 @@ void registerStudent() {
     cout << "Student registered successfully!\n";
 }
 void viewStudents() {
-    cout << "\n=== STUDENTS ===\n";
-    if (students.empty()) cout << "None\n";
-    else for (int i=0; i<students.size(); i++) {
-        cout << i+1 << ". "; students[i].display(); cout << "\n";
+    showHeader("STUDENT LIST");
+    
+    if (students.empty()) {
+        showWarning("No students registered.");
+        pause();
+        return;
     }
+    
+    for (int i=0; i<students.size(); i++) {
+        cout << i+1 << ". ";
+        students[i].display();
+        cout << "\n";
+    }
+    
+    showSuccess("Total: " + to_string(students.size()) + " student(s)");
+    pause();
 }
 
 void searchStudent() {
@@ -321,10 +332,49 @@ void summary() {
         if (t>0) file << " (" << (a*100/t) << "%)";
         file << "\n";
         file.close();
-        cout << "✅ Summary saved to summary_report.txt\n";
+        cout << "Summary saved to summary_report.txt\n";
     }
 }
+// ============================================
+// HELPER FUNCTIONS - IMPROVED READABILITY
+// ============================================
 
+// Display a formatted header
+void showHeader(string title) {
+    cout << "\n========================================\n";
+    cout << "   " << title << "\n";
+    cout << "========================================\n";
+}
+
+// Show success message with checkmark
+void showSuccess(string msg) {
+    cout << "Successful " << msg << "\n";
+}
+
+// Show error message with X mark
+void showError(string msg) {
+    cout << "An Error " << msg << "\n";
+}
+
+// Show warning message
+void showWarning(string msg) {
+    cout << "Warning " << msg << "\n";
+}
+
+// Pause and wait for user to press Enter
+void pause() {
+    cout << "\nPress Enter to continue...";
+    cin.ignore();
+    cin.get();
+}
+
+// Ask user for confirmation
+bool confirm(string msg) {
+    char ch;
+    cout << msg << " (y/n): ";
+    cin >> ch;
+    return (ch == 'y' || ch == 'Y');
+}
 // MAIN FUNCTION
 int main() {
     loadStudents(); 
