@@ -172,6 +172,46 @@ void saveSessions() {
     f.close();
     cout << "Sessions saved successfully. Backup created.\n";
 }
+// ============================================
+// HELPER FUNCTIONS - IMPROVED READABILITY
+// ============================================
+
+// Display a formatted header
+void showHeader(string title) {
+    cout << "\n========================================\n";
+    cout << "   " << title << "\n";
+    cout << "========================================\n";
+}
+
+// Show success message with checkmark
+void showSuccess(string msg) {
+    cout << "Successful " << msg << "\n";
+}
+
+// Show error message with X mark
+void showError(string msg) {
+    cout << "An Error " << msg << "\n";
+}
+
+// Show warning message
+void showWarning(string msg) {
+    cout << "Warning " << msg << "\n";
+}
+
+// Pause and wait for user to press Enter
+void pause() {
+    cout << "\nPress Enter to continue...";
+    cin.ignore();
+    cin.get();
+}
+
+// Ask user for confirmation
+bool confirm(string msg) {
+    char ch;
+    cout << msg << " (y/n): ";
+    cin >> ch;
+    return (ch == 'y' || ch == 'Y');
+}
 // Validation
 bool validIndex(string i) { 
     return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); 
@@ -182,7 +222,7 @@ bool studentExists(string i) {
     return false; 
 }
 
-/ Student Functions with better validation
+// Student Functions with better validation
 void registerStudent() {
     string n, i;
     cout << "\nIndex (3 digits): "; cin >> i;
@@ -294,7 +334,7 @@ void markAttendance() {
     sessions[s].report();
 }
 
-// Summary Function
+// Summary Function (this is the good one - keep it!)
 void summary() {
     if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
     int p=0, l=0, a=0;
@@ -313,7 +353,6 @@ void summary() {
         cout << "Absent: " << a << " (" << (a*100/t) << "%)\n";
     }
     
-    // NEW: Save to file
     char save;
     cout << "\nSave summary to file? (y/n): ";
     cin >> save;
@@ -321,7 +360,12 @@ void summary() {
         ofstream file("summary_report.txt");
         file << "ATTENDANCE SUMMARY REPORT\n";
         file << "=========================\n";
-        file << "Date: " << _DATE_ << "\n";
+        
+        // Get current date
+        time_t now = time(0);
+        char* dt = ctime(&now);
+        file << "Date: " << dt;
+        
         file << "Sessions: " << sessions.size() << "\n";
         file << "Total Marks: " << t << "\n\n";
         file << "Present: " << p;
@@ -335,46 +379,7 @@ void summary() {
         cout << "Summary saved to summary_report.txt\n";
     }
 }
-// ============================================
-// HELPER FUNCTIONS - IMPROVED READABILITY
-// ============================================
 
-// Display a formatted header
-void showHeader(string title) {
-    cout << "\n========================================\n";
-    cout << "   " << title << "\n";
-    cout << "========================================\n";
-}
-
-// Show success message with checkmark
-void showSuccess(string msg) {
-    cout << "Successful " << msg << "\n";
-}
-
-// Show error message with X mark
-void showError(string msg) {
-    cout << "An Error " << msg << "\n";
-}
-
-// Show warning message
-void showWarning(string msg) {
-    cout << "Warning " << msg << "\n";
-}
-
-// Pause and wait for user to press Enter
-void pause() {
-    cout << "\nPress Enter to continue...";
-    cin.ignore();
-    cin.get();
-}
-
-// Ask user for confirmation
-bool confirm(string msg) {
-    char ch;
-    cout << msg << " (y/n): ";
-    cin >> ch;
-    return (ch == 'y' || ch == 'Y');
-}
 // MAIN FUNCTION
 int main() {
     loadStudents(); 
