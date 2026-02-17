@@ -105,30 +105,73 @@ void saveStudents() {
     f.close();
 }
 
+// Improved Loading with Error Handling
 void loadSessions() {
     ifstream f("sessions.txt");
+    if (!f.is_open()) {
+        // Try to load from backup if main file missing
+        ifstream backup("sessions_backup.txt");
+        if (backup.is_open()) {
+            cout << "Main file not found. Loading from backup...\n";
+            f = move(backup);
+        } else {
+            cout << "No existing sessions. Starting fresh.\n";
+            return;
+        }
+    }
+    
     string line;
     sessions.clear();
     while (getline(f, line)) {
-        size_t p1 = line.find(","), p2 = line.find(",", p1+1), p3 = line.find(",", p2+1);
+        if (line.empty()) continue;
+        
+        size_t p1 = line.find(",");
+        size_t p2 = line.find(",", p1+1);
+        size_t p3 = line.find(",", p2+1);
+        
+        if (p1 == string::npos || p2 == string::npos || p3 == string::npos) {
+            cout << "Skipping invalid line: " << line << "\n";
+            continue;
+        }
+        
         string code = line.substr(0, p1);
         string date = line.substr(p1+1, p2-p1-1);
         string time = line.substr(p2+1, p3-p2-1);
-        int dur = stoi(line.substr(p3+1));
-        sessions.push_back(AttendanceSession(code, date, time, dur));
+        
+        try {
+            int dur = stoi(line.substr(p3+1));
+            sessions.push_back(AttendanceSession(code, date, time, dur));
+        } catch (...) {
+            cout << "Invalid duration in line: " << line << "\n";
+        }
     }
     f.close();
+    cout << "Loaded " << sessions.size() << " sessions.\n";
 }
 
+// Improved File Operations with Backup
 void saveSessions() {
+    // First, create a backup of existing file
+    ifstream check("sessions.txt");
+    if (check.good()) {
+        check.close();
+        rename("sessions.txt", "sessions_backup.txt");
+    }
+    
+    // Save new sessions
     ofstream f("sessions.txt");
+    if (!f.is_open()) {
+        cout << "Error: Cannot save sessions!\n";
+        return;
+    }
+    
     for (AttendanceSession s : sessions) {
         f << s.courseCode << "," << s.date << "," << s.time << "," << s.duration << "\n";
-        s.saveToFile();
+        s.saveToFile(); // Save individual session file
     }
     f.close();
+    cout << "Sessions saved successfully. Backup created.\n";
 }
-
 // Validation
 bool validIndex(string i) { 
     return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); 
