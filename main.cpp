@@ -2,9 +2,10 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <ctime>
 using namespace std;
 
-// Student class
+// Student Class
 class Student {
 public:
     string name;
@@ -16,17 +17,24 @@ public:
     }
     
     void display() {
-        cout << index << " - " << name << endl;
+        cout << index << " - " << name;
+    }
+    
+    string toFileString() {
+        return index + "," + name;
     }
 };
 
-// Attendance Session class
+// Attendance Session Class
 class AttendanceSession {
 public:
     string courseCode;
     string date;
     string time;
     int duration;
+    vector<string> present;
+    vector<string> late;
+    vector<string> absent;
     
     AttendanceSession(string code = "", string d = "", string t = "", int h = 1) {
         courseCode = code;
@@ -35,115 +43,202 @@ public:
         duration = h;
     }
     
+    void markPresent(string idx) { present.push_back(idx); }
+    void markLate(string idx) { late.push_back(idx); }
+    void markAbsent(string idx) { absent.push_back(idx); }
+    
+    bool isMarked(string idx) {
+        for (string i : present) if (i == idx) return true;
+        for (string i : late) if (i == idx) return true;
+        for (string i : absent) if (i == idx) return true;
+        return false;
+    }
+    
     void display() {
-        cout << courseCode << " on " << date << " at " << time << " (" << duration << " hours)" << endl;
+        cout << "\n=== SESSION ===" << endl;
+        cout << courseCode << " | " << date << " | " << time << " (" << duration << "h)" << endl;
+        cout << "Present: " << present.size() << " | Late: " << late.size() << " | Absent: " << absent.size() << endl;
+    }
+    
+    void report() {
+        cout << "\n=== ATTENDANCE REPORT ===" << endl;
+        cout << courseCode << " - " << date << endl;
+        cout << "PRESENT:"; for (string i : present) cout << " " << i; cout << endl;
+        cout << "LATE:"; for (string i : late) cout << " " << i; cout << endl;
+        cout << "ABSENT:"; for (string i : absent) cout << " " << i; cout << endl;
+    }
+    
+    void saveToFile() {
+        ofstream f("session_" + courseCode + "_" + date + ".txt");
+        f << "COURSE: " << courseCode << "\nDATE: " << date << "\nTIME: " << time << "\n";
+        f << "PRESENT:\n"; for (string i : present) f << i << "\n";
+        f << "LATE:\n"; for (string i : late) f << i << "\n";
+        f << "ABSENT:\n"; for (string i : absent) f << i << "\n";
+        f.close();
     }
 };
 
-// Global lists
+// Global Data
 vector<Student> students;
 vector<AttendanceSession> sessions;
 
-// Save students to file
-void saveStudents() {
-    ofstream file("students.txt");
-    for (Student s : students) {
-        file << s.index << "," << s.name << endl;
-    }
-    file.close();
-}
-
-// Load students from file
+// File Operations
 void loadStudents() {
-    ifstream file("students.txt");
+    ifstream f("students.txt");
     string line;
-    while (getline(file, line)) {
-        size_t comma = line.find(",");
-        if (comma != string::npos) {
-            string idx = line.substr(0, comma);
-            string name = line.substr(comma + 1);
-            students.push_back(Student(name, idx));
-        }
+    students.clear();
+    while (getline(f, line)) {
+        size_t c = line.find(",");
+        if (c != string::npos)
+            students.push_back(Student(line.substr(c+1), line.substr(0,c)));
     }
-    file.close();
+    f.close();
 }
 
-// Save sessions to file
+void saveStudents() {
+    ofstream f("students.txt");
+    for (Student s : students) f << s.index << "," << s.name << "\n";
+    f.close();
+}
+
+void loadSessions() {
+    ifstream f("sessions.txt");
+    string line;
+    sessions.clear();
+    while (getline(f, line)) {
+        size_t p1 = line.find(","), p2 = line.find(",", p1+1), p3 = line.find(",", p2+1);
+        string code = line.substr(0, p1);
+        string date = line.substr(p1+1, p2-p1-1);
+        string time = line.substr(p2+1, p3-p2-1);
+        int dur = stoi(line.substr(p3+1));
+        sessions.push_back(AttendanceSession(code, date, time, dur));
+    }
+    f.close();
+}
+
 void saveSessions() {
-    ofstream file("sessions.txt");
-    for (AttendanceSession ses : sessions) {
-        file << ses.courseCode << "," << ses.date << "," << ses.time << "," << ses.duration << endl;
+    ofstream f("sessions.txt");
+    for (AttendanceSession s : sessions) {
+        f << s.courseCode << "," << s.date << "," << s.time << "," << s.duration << "\n";
+        s.saveToFile();
     }
-    file.close();
+    f.close();
 }
 
-// ===== MENU FUNCTIONS =====
+// Validation
+bool validIndex(string i) { return i.length()==3 && isdigit(i[0]) && isdigit(i[1]) && isdigit(i[2]); }
+bool studentExists(string i) { for (Student s : students) if (s.index == i) return true; return false; }
+
+// Student Functions
 void registerStudent() {
-    string name, index;
-    cout << "\nEnter student index: ";
-    cin >> index;
-    cout << "Enter student name: ";
-    cin.ignore();
-    getline(cin, name);
-    students.push_back(Student(name, index));
+    string n, i;
+    cout << "\nIndex (3 digits): "; cin >> i;
+    if (!validIndex(i)) { cout << "Invalid index!\n"; return; }
+    if (studentExists(i)) { cout << "Already exists!\n"; return; }
+    cout << "Name: "; cin.ignore(); getline(cin, n);
+    students.push_back(Student(n, i));
     saveStudents();
-    cout << "Student registered!\n";
+    cout << "Registered!\n";
 }
 
 void viewStudents() {
-    cout << "\n=== STUDENTS ===" << endl;
-    for (Student s : students) {
-        s.display();
+    cout << "\n=== STUDENTS ===\n";
+    if (students.empty()) cout << "None\n";
+    else for (int i=0; i<students.size(); i++) {
+        cout << i+1 << ". "; students[i].display(); cout << "\n";
     }
 }
 
+void searchStudent() {
+    string i; cout << "Index: "; cin >> i;
+    for (Student s : students) if (s.index == i) { cout << "Found: "; s.display(); cout << "\n"; return; }
+    cout << "Not found\n";
+}
+
+// Session Functions
 void createSession() {
-    string code, date, time;
-    int hours;
-    cout << "\nEnter course code: ";
-    cin >> code;
-    cout << "Enter date (YYYY-MM-DD): ";
-    cin >> date;
-    cout << "Enter time (HH:MM): ";
-    cin >> time;
-    cout << "Enter duration (hours): ";
-    cin >> hours;
-    sessions.push_back(AttendanceSession(code, date, time, hours));
+    string c, d, t; int h;
+    cout << "Course: "; cin >> c;
+    cout << "Date (YYYY-MM-DD): "; cin >> d;
+    cout << "Time (HH:MM): "; cin >> t;
+    cout << "Hours (1-4): "; cin >> h;
+    if (h<1 || h>4) { cout << "Invalid hours\n"; return; }
+    sessions.push_back(AttendanceSession(c, d, t, h));
     saveSessions();
     cout << "Session created!\n";
 }
 
 void viewSessions() {
-    cout << "\n=== SESSIONS ===" << endl;
-    for (AttendanceSession ses : sessions) {
-        ses.display();
+    if (sessions.empty()) cout << "\nNo sessions\n";
+    else for (int i=0; i<sessions.size(); i++) {
+        cout << "\n" << i+1 << "."; sessions[i].display();
     }
 }
 
-// ===== MAIN =====
+// Attendance Marking
+void markAttendance() {
+    if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
+    if (students.empty()) { cout << "\nNo students\n"; return; }
+    
+    cout << "\nSelect session:\n";
+    for (int i=0; i<sessions.size(); i++) cout << i+1 << ". " << sessions[i].courseCode << "\n";
+    int s; cin >> s; s--;
+    if (s<0 || s>=sessions.size()) { cout << "Invalid\n"; return; }
+    
+    sessions[s].display();
+    cout << "\nStudents:\n";
+    for (Student stu : students) {
+        cout << stu.index << " - " << stu.name;
+        if (sessions[s].isMarked(stu.index)) cout << " [DONE]";
+        cout << "\n";
+    }
+    
+    string idx; int st;
+    cout << "\nEnter index (0 to finish): ";
+    while (cin >> idx, idx != "0") {
+        if (!studentExists(idx)) { cout << "Not found. Try: "; continue; }
+        if (sessions[s].isMarked(idx)) { cout << "Already marked. Next: "; continue; }
+        cout << "1=Present 2=Late 3=Absent: "; cin >> st;
+        if (st==1) { sessions[s].markPresent(idx); cout << "Present\n"; }
+        else if (st==2) { sessions[s].markLate(idx); cout << "Late\n"; }
+        else if (st==3) { sessions[s].markAbsent(idx); cout << "Absent\n"; }
+        else cout << "Invalid\n";
+        cout << "Next index (0 to finish): ";
+    }
+    saveSessions();
+    sessions[s].report();
+}
+
+// Reports
+void summary() {
+    if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
+    int p=0, l=0, a=0;
+    for (auto ses : sessions) { p+=ses.present.size(); l+=ses.late.size(); a+=ses.absent.size(); }
+    int t = p+l+a;
+    cout << "\n=== SUMMARY ===\nSessions: " << sessions.size() << "\nTotal marks: " << t << "\n";
+    if (t>0) cout << "Present: " << p << " (" << p*100/t << "%)\nLate: " << l << " (" << l*100/t << "%)\nAbsent: " << a << " (" << a*100/t << "%)\n";
+}
+
+// Main
 int main() {
-    loadStudents();
-    
-    int choice;
+    loadStudents(); loadSessions();
+    int ch;
     do {
-        cout << "\n========== ATTENDANCE SYSTEM ==========" << endl;
-        cout << "1. Register Student" << endl;
-        cout << "2. View Students" << endl;
-        cout << "3. Create Lecture Session (WEEK 2)" << endl;
-        cout << "4. View Sessions (WEEK 2)" << endl;
-        cout << "5. Exit" << endl;
-        cout << "Choice: ";
-        cin >> choice;
-        
-        switch(choice) {
-            case 1: registerStudent(); break;
-            case 2: viewStudents(); break;
-            case 3: createSession(); break;
-            case 4: viewSessions(); break;
-            case 5: cout << "Goodbye!\n"; break;
-            default: cout << "Invalid choice!\n";
+        cout << "\n=== WEEK 3 ATTENDANCE ===\n1.Register\n2.View Students\n3.Search\n4.Create Session\n5.View Sessions\n6.Mark Attendance\n7.Session Report\n8.Summary\n9.Exit\nChoice: ";
+        cin >> ch;
+        if (ch==1) registerStudent();
+        else if (ch==2) viewStudents();
+        else if (ch==3) searchStudent();
+        else if (ch==4) createSession();
+        else if (ch==5) viewSessions();
+        else if (ch==6) markAttendance();
+        else if (ch==7) {
+            if (sessions.empty()) cout << "No sessions\n";
+            else { int s; cout << "Session (1-"<<sessions.size()<<"): "; cin >> s; sessions[s-1].report(); }
         }
-    } while (choice != 5);
-    
+        else if (ch==8) summary();
+        else if (ch==9) { saveStudents(); saveSessions(); cout << "Goodbye!\n"; }
+        else cout << "Invalid\n";
+    } while (ch != 9);
     return 0;
 }
