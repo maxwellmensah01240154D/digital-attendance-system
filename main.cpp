@@ -139,18 +139,37 @@ bool studentExists(string i) {
     return false; 
 }
 
-// Student Functions
+/ Student Functions with better validation
 void registerStudent() {
     string n, i;
     cout << "\nIndex (3 digits): "; cin >> i;
-    if (!validIndex(i)) { cout << "Invalid index!\n"; return; }
-    if (studentExists(i)) { cout << "Already exists!\n"; return; }
-    cout << "Name: "; cin.ignore(); getline(cin, n);
+    
+    // Validate index format
+    if (!validIndex(i)) { 
+        cout << "Invalid index! Must be 3 digits (001-999).\n"; 
+        return; 
+    }
+    
+    // Check if already exists
+    if (studentExists(i)) { 
+        cout << "Student with index " << i << " already exists!\n"; 
+        return; 
+    }
+    
+    cout << "Name: "; 
+    cin.ignore(); 
+    getline(cin, n);
+    
+    // Validate name not empty
+    if (n.length() < 2) {
+        cout << "Name too short!\n";
+        return;
+    }
+    
     students.push_back(Student(n, i));
     saveStudents();
-    cout << "Registered!\n";
+    cout << "Student registered successfully!\n";
 }
-
 void viewStudents() {
     cout << "\n=== STUDENTS ===\n";
     if (students.empty()) cout << "None\n";
