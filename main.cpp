@@ -78,16 +78,40 @@ public:
         cout << "\n";
     }
     
-    void saveToFile() {
-        ofstream f("session_" + courseCode + "_" + date + ".txt");
-        f << "COURSE: " << courseCode << "\nDATE: " << date << "\nTIME: " << time << "\n";
-        f << "PRESENT:\n"; for (string i : present) f << i << "\n";
-        f << "LATE:\n"; for (string i : late) f << i << "\n";
-        f << "ABSENT:\n"; for (string i : absent) f << i << "\n";
-        f.close();
+   void saveToFile() {
+    string filename = "session_" + courseCode + "_" + date + ".csv";
+    ofstream f(filename);
+    
+    if (!f.is_open()) {
+        cout << "Error: Cannot open " << filename << " for writing!\n";
+        return;
     }
-};
-
+    
+    // Write session header
+    f << "COURSE,DATE,TIME,DURATION\n";
+    f << courseCode << "," << date << "," << time << "," << duration << "\n\n";
+    
+    // Write attendance data with headers
+    f << "STATUS,STUDENT_INDEX\n";
+    
+    // Write present students
+    for (string i : present) {
+        f << "PRESENT," << i << "\n";
+    }
+    
+    // Write late students
+    for (string i : late) {
+        f << "LATE," << i << "\n";
+    }
+    
+    // Write absent students
+    for (string i : absent) {
+        f << "ABSENT," << i << "\n";
+    }
+    
+    f.close();
+    cout << "Session saved to " << filename << "\n";
+}
 // Global Data
 vector<Student> students;
 vector<AttendanceSession> sessions;
@@ -153,10 +177,10 @@ void saveStudents() {
 
 // Improved Loading with Error Handling
 void loadSessions() {
-    ifstream f("sessions.txt");
+    ifstream f("sessions.csv");
     if (!f.is_open()) {
-        // Try to load from backup if main file missing
-        ifstream backup("sessions_backup.txt");
+        // Try backup
+        ifstream backup("sessions_backup.csv");
         if (backup.is_open()) {
             cout << "Main file not found. Loading from backup...\n";
             f = move(backup);
@@ -168,6 +192,10 @@ void loadSessions() {
     
     string line;
     sessions.clear();
+    
+    // Skip header
+    getline(f, line);
+    
     while (getline(f, line)) {
         if (line.empty()) continue;
         
@@ -192,24 +220,39 @@ void loadSessions() {
         }
     }
     f.close();
-    cout << "Loaded " << sessions.size() << " sessions.\n";
+    cout << "Loaded " << sessions.size() << " sessions from CSV.\n";
 }
-
 // Improved File Operations with Backup
 void saveSessions() {
-    // First, create a backup of existing file
-    ifstream check("sessions.txt");
+    // Backup old file
+    ifstream check("sessions.csv");
     if (check.good()) {
         check.close();
-        rename("sessions.txt", "sessions_backup.txt");
+        rename("sessions.csv", "sessions_backup.csv");
     }
     
     // Save new sessions
-    ofstream f("sessions.txt");
+    ofstream f("sessions.csv");
     if (!f.is_open()) {
         cout << "Error: Cannot save sessions!\n";
         return;
     }
+    
+    // Write CSV header
+    f << "COURSE_CODE,DATE,TIME,DURATION\n";
+    
+    // Write each session
+    for (AttendanceSession s : sessions) {
+        f << s.courseCode << "," 
+          << s.date << "," 
+          << s.time << "," 
+          << s.duration << "\n";
+        s.saveToFile(); // Save individual session file
+    }
+    f.close();
+    cout << "Sessions saved to sessions.csv (" << sessions.size() << " sessions)\n";
+    cout << "Backup created as sessions_backup.csv\n";
+}
     
     for (AttendanceSession s : sessions) {
         f << s.courseCode << "," << s.date << "," << s.time << "," << s.duration << "\n";
@@ -321,7 +364,7 @@ void registerStudent() {
     students.push_back(newStudent);
     saveStudents();
     
-    cout << "\n✅ Student registered successfully!\n";
+    cout << "\n Student registered successfully!\n";
     cout << "Name: " << name << "\n";
     cout << "Index: " << index << "\n";
     cout << "Department: " << department << "\n";
