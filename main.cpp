@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <cctype>
 using namespace std;
 
 // Student Class
@@ -10,8 +11,8 @@ class Student {
 public:
     string name;
     string index;
-    string department;  // NEW
-    int level;          // NEW
+    string department;
+    int level;
 
     // Constructor with all fields
     Student(string n = "", string idx = "", string dept = "", int lvl = 0) {
@@ -78,49 +79,71 @@ public:
         cout << "\n";
     }
     
-   void saveToFile() {
-    string filename = "session_" + courseCode + "_" + date + ".csv";
-    ofstream f(filename);
-    
-    if (!f.is_open()) {
-        cout << "Error: Cannot open " << filename << " for writing!\n";
-        return;
+    void saveToFile() {
+        string filename = "session_" + courseCode + "_" + date + ".csv";
+        ofstream f(filename);
+        
+        if (!f.is_open()) {
+            cout << "Error: Cannot open " << filename << " for writing!\n";
+            return;
+        }
+        
+        // Write session header
+        f << "COURSE,DATE,TIME,DURATION\n";
+        f << courseCode << "," << date << "," << time << "," << duration << "\n\n";
+        
+        // Write attendance data with headers
+        f << "STATUS,STUDENT_INDEX\n";
+        
+        // Write present students
+        for (string i : present) {
+            f << "PRESENT," << i << "\n";
+        }
+        
+        // Write late students
+        for (string i : late) {
+            f << "LATE," << i << "\n";
+        }
+        
+        // Write absent students
+        for (string i : absent) {
+            f << "ABSENT," << i << "\n";
+        }
+        
+        f.close();
+        cout << "Session saved to " << filename << "\n";
     }
-    
-    // Write session header
-    f << "COURSE,DATE,TIME,DURATION\n";
-    f << courseCode << "," << date << "," << time << "," << duration << "\n\n";
-    
-    // Write attendance data with headers
-    f << "STATUS,STUDENT_INDEX\n";
-    
-    // Write present students
-    for (string i : present) {
-        f << "PRESENT," << i << "\n";
-    }
-    
-    // Write late students
-    for (string i : late) {
-        f << "LATE," << i << "\n";
-    }
-    
-    // Write absent students
-    for (string i : absent) {
-        f << "ABSENT," << i << "\n";
-    }
-    
-    f.close();
-    cout << "Session saved to " << filename << "\n";
-}
+};
+
 // Global Data
 vector<Student> students;
 vector<AttendanceSession> sessions;
 
 // File Operations
-
-
 void saveStudents() {
-   void loadStudents() {
+    ofstream f("students.csv");
+    
+    if (!f.is_open()) {
+        cout << "Error: Cannot open students.csv for writing!\n";
+        return;
+    }
+    
+    // Write CSV header
+    f << "INDEX,NAME,DEPARTMENT,LEVEL\n";
+    
+    // Write each student's data
+    for (Student s : students) {
+        f << s.index << "," 
+          << s.name << "," 
+          << s.department << "," 
+          << s.level << "\n";
+    }
+    
+    f.close();
+    cout << "Students saved to students.csv (" << students.size() << " records)\n";
+}
+
+void loadStudents() {
     ifstream f("students.csv");
     if (!f.is_open()) {
         cout << "No existing students.csv found. Starting fresh.\n";
@@ -153,29 +176,39 @@ void saveStudents() {
     }
     f.close();
     cout << "Loaded " << students.size() << " students from students.csv\n";
-} ofstream f("students.csv");  // Changed to .csv
+}
+
+void saveSessions() {
+    // Backup old file
+    ifstream check("sessions.csv");
+    if (check.good()) {
+        check.close();
+        rename("sessions.csv", "sessions_backup.csv");
+    }
     
+    // Save new sessions
+    ofstream f("sessions.csv");
     if (!f.is_open()) {
-        cout << "Error: Cannot open students.csv for writing!\n";
+        cout << "Error: Cannot save sessions!\n";
         return;
     }
     
     // Write CSV header
-    f << "INDEX,NAME,DEPARTMENT,LEVEL\n";
+    f << "COURSE_CODE,DATE,TIME,DURATION\n";
     
-    // Write each student's data
-    for (Student s : students) {
-        f << s.index << "," 
-          << s.name << "," 
-          << s.department << "," 
-          << s.level << "\n";
+    // Write each session
+    for (AttendanceSession s : sessions) {
+        f << s.courseCode << "," 
+          << s.date << "," 
+          << s.time << "," 
+          << s.duration << "\n";
+        s.saveToFile(); // Save individual session file
     }
-    
     f.close();
-    cout << "Students saved to students.csv (" << students.size() << " records)\n";
+    cout << "Sessions saved to sessions.csv (" << sessions.size() << " sessions)\n";
+    cout << "Backup created as sessions_backup.csv\n";
 }
 
-// Improved Loading with Error Handling
 void loadSessions() {
     ifstream f("sessions.csv");
     if (!f.is_open()) {
@@ -222,47 +255,9 @@ void loadSessions() {
     f.close();
     cout << "Loaded " << sessions.size() << " sessions from CSV.\n";
 }
-// Improved File Operations with Backup
-void saveSessions() {
-    // Backup old file
-    ifstream check("sessions.csv");
-    if (check.good()) {
-        check.close();
-        rename("sessions.csv", "sessions_backup.csv");
-    }
-    
-    // Save new sessions
-    ofstream f("sessions.csv");
-    if (!f.is_open()) {
-        cout << "Error: Cannot save sessions!\n";
-        return;
-    }
-    
-    // Write CSV header
-    f << "COURSE_CODE,DATE,TIME,DURATION\n";
-    
-    // Write each session
-    for (AttendanceSession s : sessions) {
-        f << s.courseCode << "," 
-          << s.date << "," 
-          << s.time << "," 
-          << s.duration << "\n";
-        s.saveToFile(); // Save individual session file
-    }
-    f.close();
-    cout << "Sessions saved to sessions.csv (" << sessions.size() << " sessions)\n";
-    cout << "Backup created as sessions_backup.csv\n";
-}
-    
-    for (AttendanceSession s : sessions) {
-        f << s.courseCode << "," << s.date << "," << s.time << "," << s.duration << "\n";
-        s.saveToFile(); // Save individual session file
-    }
-    f.close();
-    cout << "Sessions saved successfully. Backup created.\n";
-}
+
 // ============================================
-// HELPER FUNCTIONS - IMPROVED READABILITY
+// HELPER FUNCTIONS
 // ============================================
 
 // Display a formatted header
@@ -274,17 +269,17 @@ void showHeader(string title) {
 
 // Show success message with checkmark
 void showSuccess(string msg) {
-    cout << "Successful " << msg << "\n";
+    cout << "✅ " << msg << "\n";
 }
 
 // Show error message with X mark
 void showError(string msg) {
-    cout << "An Error " << msg << "\n";
+    cout << "❌ " << msg << "\n";
 }
 
 // Show warning message
 void showWarning(string msg) {
-    cout << "Warning " << msg << "\n";
+    cout << "⚠️ " << msg << "\n";
 }
 
 // Pause and wait for user to press Enter
@@ -301,7 +296,7 @@ bool confirm(string msg) {
     cin >> ch;
     return (ch == 'y' || ch == 'Y');
 }
-// Validation for 8 digits + 1 letter (e.g., 01240154D)
+
 // Validate index format: 8 digits + 1 letter (e.g., 01240154D)
 bool validIndex(string index) {
     // Check length is exactly 9 characters
@@ -323,11 +318,13 @@ bool validIndex(string index) {
     
     return true;
 }
+
 bool studentExists(string i) { 
     for (Student s : students) if (s.index == i) return true; 
     return false; 
 }
 
+// Student Functions
 void registerStudent() {
     string name, index, department;
     int level;
@@ -371,12 +368,13 @@ void registerStudent() {
     students.push_back(newStudent);
     saveStudents();
     
-    cout << "\n Student registered successfully!\n";
+    cout << "\n✅ Student registered successfully!\n";
     cout << "Name: " << name << "\n";
     cout << "Index: " << index << "\n";
     cout << "Department: " << department << "\n";
     cout << "Level: " << level << "\n";
 }
+
 void viewStudents() {
     showHeader("STUDENT LIST");
     
@@ -397,42 +395,74 @@ void viewStudents() {
 }
 
 void searchStudent() {
-    string i; cout << "Index: "; cin >> i;
-    for (Student s : students) if (s.index == i) { 
-        cout << "Found: "; s.display(); cout << "\n"; return; 
+    string i; 
+    cout << "Enter Index: "; 
+    cin >> i;
+    for (Student s : students) {
+        if (s.index == i) { 
+            cout << "Found: "; 
+            s.display(); 
+            cout << "\n"; 
+            return; 
+        }
     }
     cout << "Not found\n";
 }
 
 // Session Functions
 void createSession() {
-    string c, d, t; int h;
-    cout << "Course: "; cin >> c;
-    cout << "Date (YYYY-MM-DD): "; cin >> d;
-    cout << "Time (HH:MM): "; cin >> t;
-    cout << "Hours (1-4): "; cin >> h;
-    if (h<1 || h>4) { cout << "Invalid hours\n"; return; }
+    string c, d, t; 
+    int h;
+    cout << "Course Code: "; 
+    cin >> c;
+    cout << "Date (YYYY-MM-DD): "; 
+    cin >> d;
+    cout << "Time (HH:MM): "; 
+    cin >> t;
+    cout << "Hours (1-4): "; 
+    cin >> h;
+    if (h<1 || h>4) { 
+        cout << "Invalid hours\n"; 
+        return; 
+    }
     sessions.push_back(AttendanceSession(c, d, t, h));
     saveSessions();
     cout << "Session created!\n";
 }
 
 void viewSessions() {
-    if (sessions.empty()) cout << "\nNo sessions\n";
-    else for (int i=0; i<sessions.size(); i++) {
-        cout << "\n" << i+1 << "."; sessions[i].display();
+    if (sessions.empty()) {
+        cout << "\nNo sessions\n";
+    } else {
+        for (int i=0; i<sessions.size(); i++) {
+            cout << "\n" << i+1 << "."; 
+            sessions[i].display();
+        }
     }
 }
 
 // Attendance Marking
 void markAttendance() {
-    if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
-    if (students.empty()) { cout << "\nNo students\n"; return; }
+    if (sessions.empty()) { 
+        cout << "\nNo sessions\n"; 
+        return; 
+    }
+    if (students.empty()) { 
+        cout << "\nNo students\n"; 
+        return; 
+    }
     
     cout << "\nSelect session:\n";
-    for (int i=0; i<sessions.size(); i++) cout << i+1 << ". " << sessions[i].courseCode << "\n";
-    int s; cin >> s; s--;
-    if (s<0 || s>=sessions.size()) { cout << "Invalid\n"; return; }
+    for (int i=0; i<sessions.size(); i++) {
+        cout << i+1 << ". " << sessions[i].courseCode << "\n";
+    }
+    int s; 
+    cin >> s; 
+    s--;
+    if (s<0 || s>=sessions.size()) { 
+        cout << "Invalid\n"; 
+        return; 
+    }
     
     sessions[s].display();
     cout << "\nStudents:\n";
@@ -442,15 +472,32 @@ void markAttendance() {
         cout << "\n";
     }
     
-    string idx; int st;
+    string idx; 
+    int st;
     cout << "\nEnter index (0 to finish): ";
     while (cin >> idx, idx != "0") {
-        if (!studentExists(idx)) { cout << "Not found. Try: "; continue; }
-        if (sessions[s].isMarked(idx)) { cout << "Already marked. Next: "; continue; }
-        cout << "1=Present 2=Late 3=Absent: "; cin >> st;
-        if (st==1) { sessions[s].markPresent(idx); cout << "Present\n"; }
-        else if (st==2) { sessions[s].markLate(idx); cout << "Late\n"; }
-        else if (st==3) { sessions[s].markAbsent(idx); cout << "Absent\n"; }
+        if (!studentExists(idx)) { 
+            cout << "Not found. Try: "; 
+            continue; 
+        }
+        if (sessions[s].isMarked(idx)) { 
+            cout << "Already marked. Next: "; 
+            continue; 
+        }
+        cout << "1=Present 2=Late 3=Absent: "; 
+        cin >> st;
+        if (st==1) { 
+            sessions[s].markPresent(idx); 
+            cout << "Present\n"; 
+        }
+        else if (st==2) { 
+            sessions[s].markLate(idx); 
+            cout << "Late\n"; 
+        }
+        else if (st==3) { 
+            sessions[s].markAbsent(idx); 
+            cout << "Absent\n"; 
+        }
         else cout << "Invalid\n";
         cout << "Next index (0 to finish): ";
     }
@@ -458,9 +505,12 @@ void markAttendance() {
     sessions[s].report();
 }
 
-// Summary Function (this is the good one - keep it!)
+// Summary Function
 void summary() {
-    if (sessions.empty()) { cout << "\nNo sessions\n"; return; }
+    if (sessions.empty()) { 
+        cout << "\nNo sessions\n"; 
+        return; 
+    }
     int p=0, l=0, a=0;
     for (auto ses : sessions) { 
         p += ses.present.size(); 
@@ -511,7 +561,7 @@ int main() {
     
     int ch;
     do {
-        cout << "\n=== WEEK 3 ATTENDANCE ===\n";
+        cout << "\n=== DIGITAL ATTENDANCE SYSTEM ===\n";
         cout << "1. Register Student\n";
         cout << "2. View Students\n";
         cout << "3. Search Student\n";
