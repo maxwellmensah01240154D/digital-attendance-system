@@ -10,18 +10,24 @@ class Student {
 public:
     string name;
     string index;
-    
-    Student(string n = "", string idx = "") {
+    string department;  // NEW
+    int level;          // NEW
+
+    // Constructor with all fields
+    Student(string n = "", string idx = "", string dept = "", int lvl = 0) {
         name = n;
         index = idx;
+        department = dept;
+        level = lvl;
     }
-    
+
     void display() {
-        cout << index << " - " << name;
+        cout << index << " - " << name << " | " << department << " | Level " << level;
     }
     
+    // For saving to CSV
     string toFileString() {
-        return index + "," + name;
+        return index + "," + name + "," + department + "," + to_string(level);
     }
 };
 
