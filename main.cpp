@@ -93,22 +93,62 @@ vector<Student> students;
 vector<AttendanceSession> sessions;
 
 // File Operations
-void loadStudents() {
-    ifstream f("students.txt");
-    string line;
-    students.clear();
-    while (getline(f, line)) {
-        size_t c = line.find(",");
-        if (c != string::npos)
-            students.push_back(Student(line.substr(c+1), line.substr(0,c)));
-    }
-    f.close();
-}
+
 
 void saveStudents() {
-    ofstream f("students.txt");
-    for (Student s : students) f << s.index << "," << s.name << "\n";
+   void loadStudents() {
+    ifstream f("students.csv");
+    if (!f.is_open()) {
+        cout << "No existing students.csv found. Starting fresh.\n";
+        return;
+    }
+    
+    string line;
+    students.clear();
+    
+    // Skip the header line
+    getline(f, line);
+    
+    // Read each student record
+    while (getline(f, line)) {
+        if (line.empty()) continue;
+        
+        // Parse CSV: index,name,department,level
+        size_t pos1 = line.find(",");
+        size_t pos2 = line.find(",", pos1 + 1);
+        size_t pos3 = line.find(",", pos2 + 1);
+        
+        if (pos1 != string::npos && pos2 != string::npos && pos3 != string::npos) {
+            string idx = line.substr(0, pos1);
+            string name = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            string dept = line.substr(pos2 + 1, pos3 - pos2 - 1);
+            int level = stoi(line.substr(pos3 + 1));
+            
+            students.push_back(Student(name, idx, dept, level));
+        }
+    }
     f.close();
+    cout << "Loaded " << students.size() << " students from students.csv\n";
+} ofstream f("students.csv");  // Changed to .csv
+    
+    if (!f.is_open()) {
+        cout << "Error: Cannot open students.csv for writing!\n";
+        return;
+    }
+    
+    // Write CSV header
+    f << "INDEX,NAME,DEPARTMENT,LEVEL\n";
+    
+    // Write each student's data
+    for (Student s : students) {
+        f << s.index << "," 
+          << s.name << "," 
+          << s.department << "," 
+          << s.level << "\n";
+    }
+    
+    f.close();
+    cout << "Students saved to students.csv (" << students.size() << " records)\n";
 }
 
 // Improved Loading with Error Handling
