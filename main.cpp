@@ -269,17 +269,17 @@ void showHeader(string title) {
 
 // Show success message with checkmark
 void showSuccess(string msg) {
-    cout << "✅ " << msg << "\n";
+    cout << " " << msg << "\n";
 }
 
 // Show error message with X mark
 void showError(string msg) {
-    cout << "❌ " << msg << "\n";
+    cout << " " << msg << "\n";
 }
 
 // Show warning message
 void showWarning(string msg) {
-    cout << "⚠️ " << msg << "\n";
+    cout << " " << msg << "\n";
 }
 
 // Pause and wait for user to press Enter
@@ -368,7 +368,7 @@ void registerStudent() {
     students.push_back(newStudent);
     saveStudents();
     
-    cout << "\n✅ Student registered successfully!\n";
+    cout << "\n Student registered successfully!\n";
     cout << "Name: " << name << "\n";
     cout << "Index: " << index << "\n";
     cout << "Department: " << department << "\n";
