@@ -302,20 +302,27 @@ bool confirm(string msg) {
     return (ch == 'y' || ch == 'Y');
 }
 // Validation for 8 digits + 1 letter (e.g., 01240154D)
-bool validIndex(string i) { 
-    if (i.length() != 9) return false; // 8 digits + 1 letter = 9 total
+// Validate index format: 8 digits + 1 letter (e.g., 01240154D)
+bool validIndex(string index) {
+    // Check length is exactly 9 characters
+    if (index.length() != 9) {
+        return false;
+    }
     
     // Check first 8 characters are digits
-    for (int pos = 0; pos < 8; pos++) {
-        if (!isdigit(i[pos])) return false;
+    for (int i = 0; i < 8; i++) {
+        if (!isdigit(index[i])) {
+            return false;
+        }
     }
     
     // Check last character is a letter
-    if (!isalpha(i[8])) return false;
+    if (!isalpha(index[8])) {
+        return false;
+    }
     
     return true;
 }
-
 bool studentExists(string i) { 
     for (Student s : students) if (s.index == i) return true; 
     return false; 
