@@ -238,36 +238,54 @@ bool studentExists(string i) {
     return false; 
 }
 
-// Student Functions with better validation
 void registerStudent() {
-    string n, i;
-    cout << "Invalid index! Must be 8 digits followed by a letter (e.g., 01240154D).\n";
+    string name, index, department;
+    int level;
     
-    // Validate index format
-    if (!validIndex(i)) { 
-        cout << "Invalid index! Must be 3 digits (001-999).\n"; 
-        return; 
-    }
+    cout << "\n=== STUDENT REGISTRATION ===\n";
     
-    // Check if already exists
-    if (studentExists(i)) { 
-        cout << "Student with index " << i << " already exists!\n"; 
-        return; 
-    }
+    // Get Name
+    cout << "Enter Full Name: ";
+    cin.ignore();
+    getline(cin, name);
     
-    cout << "Name: "; 
-    cin.ignore(); 
-    getline(cin, n);
+    // Get Index Number with validation
+    do {
+        cout << "Enter Index Number (8 digits + 1 letter, e.g., 01240154D): ";
+        cin >> index;
+        
+        if (!validIndex(index)) {
+            cout << "Invalid format! Must be 8 digits followed by a letter.\n";
+        } else if (studentExists(index)) {
+            cout << "Index already exists! Use another.\n";
+            index = "";
+        }
+    } while (index.empty() || !validIndex(index));
     
-    // Validate name not empty
-    if (n.length() < 2) {
-        cout << "Name too short!\n";
-        return;
-    }
+    // Get Department
+    cout << "Enter Department: ";
+    cin.ignore();
+    getline(cin, department);
     
-    students.push_back(Student(n, i));
+    // Get Level
+    do {
+        cout << "Enter Level (100, 200, 300, 400): ";
+        cin >> level;
+        if (level != 100 && level != 200 && level != 300 && level != 400) {
+            cout << "Invalid level! Must be 100, 200, 300, or 400.\n";
+        }
+    } while (level != 100 && level != 200 && level != 300 && level != 400);
+    
+    // Create student with ALL information
+    Student newStudent(name, index, department, level);
+    students.push_back(newStudent);
     saveStudents();
-    cout << "Student registered successfully!\n";
+    
+    cout << "\n✅ Student registered successfully!\n";
+    cout << "Name: " << name << "\n";
+    cout << "Index: " << index << "\n";
+    cout << "Department: " << department << "\n";
+    cout << "Level: " << level << "\n";
 }
 void viewStudents() {
     showHeader("STUDENT LIST");
